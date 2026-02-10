@@ -34,6 +34,14 @@
     image-rendering: auto;
   }
 
+  #logo {
+    position: absolute;
+    top: 16px;
+    left: 16px;
+    height: 48px;
+    z-index: 10;
+  }
+
   /* --- Scene 1 sprites --- */
 
   #diatom-guy {
@@ -145,6 +153,7 @@
 <body>
 <div id="game">
   <div id="background"></div>
+  <img id="logo" src="assets/logo-ac-inside.svg" alt="Logo">
 
   <!-- Scene 1 elements -->
   <img id="diatom-guy" class="sprite" src="assets/diatom-guy.png" alt="Diatom Guy" draggable="false">
