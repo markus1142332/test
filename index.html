@@ -1,0 +1,344 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Diatom Guy Adventure</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    overflow: hidden;
+    background: #111;
+    width: 100vw;
+    height: 100vh;
+  }
+
+  #game {
+    position: relative;
+    width: 100vw;
+    height: 100vh;
+    overflow: hidden;
+  }
+
+  #background {
+    position: absolute;
+    inset: 0;
+    background-size: cover;
+    background-position: center;
+    transition: opacity 0.6s ease;
+  }
+
+  .sprite {
+    position: absolute;
+    image-rendering: auto;
+  }
+
+  .sprite img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    pointer-events: none;
+  }
+
+  /* Bobbing animation */
+  @keyframes bob {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-12px); }
+  }
+
+  .bobbing {
+    animation: bob 1.4s ease-in-out infinite;
+  }
+
+  /* Shake animation */
+  @keyframes shake {
+    0%, 100% { transform: translateX(0) rotate(0); }
+    15% { transform: translateX(-3px) rotate(-0.5deg); }
+    30% { transform: translateX(3px) rotate(0.5deg); }
+    45% { transform: translateX(-3px) rotate(-0.5deg); }
+    60% { transform: translateX(3px) rotate(0.5deg); }
+    75% { transform: translateX(-2px) rotate(-0.3deg); }
+    90% { transform: translateX(2px) rotate(0.3deg); }
+  }
+
+  .shaking {
+    animation: shake 0.15s ease-in-out infinite;
+  }
+
+  /* Slide off screen to the right */
+  @keyframes slideOff {
+    0% { transform: translateX(0); }
+    100% { transform: translateX(110vw); }
+  }
+
+  .slide-off {
+    animation: slideOff 1.5s ease-in forwards;
+  }
+
+  /* Fade in */
+  @keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+
+  .fade-in {
+    animation: fadeIn 0.5s ease forwards;
+  }
+
+  .clickable {
+    cursor: pointer;
+  }
+
+  .draggable {
+    cursor: grab;
+  }
+
+  .draggable:active {
+    cursor: grabbing;
+  }
+</style>
+</head>
+<body>
+<div id="game">
+  <div id="background"></div>
+</div>
+
+<script>
+const game = document.getElementById('game');
+const bg = document.getElementById('background');
+
+function createSprite(id, src, opts = {}) {
+  const el = document.createElement('div');
+  el.id = id;
+  el.classList.add('sprite');
+  if (opts.className) el.classList.add(opts.className);
+  Object.assign(el.style, {
+    left: opts.left ?? 'auto',
+    top: opts.top ?? 'auto',
+    bottom: opts.bottom ?? 'auto',
+    right: opts.right ?? 'auto',
+    width: opts.width ?? 'auto',
+    height: opts.height ?? 'auto',
+    zIndex: opts.zIndex ?? '1',
+  });
+  const img = document.createElement('img');
+  img.src = src;
+  img.draggable = false;
+  el.appendChild(img);
+  game.appendChild(el);
+  return el;
+}
+
+function removeSprite(id) {
+  const el = document.getElementById(id);
+  if (el) el.remove();
+}
+
+/* ───── SCENE 1 ───── */
+function startScene1() {
+  // Clear game area (except background div)
+  game.querySelectorAll('.sprite').forEach(s => s.remove());
+
+  // Background
+  bg.style.backgroundImage = 'url(assets/inside-scene2.jpg)';
+  bg.style.opacity = '1';
+
+  // Diatom guy on the left
+  createSprite('diatom-guy', 'assets/diatom-guy.png', {
+    left: '8%',
+    bottom: '8%',
+    width: '220px',
+    height: '280px',
+    zIndex: '2',
+  });
+
+  // Hat on the left, bobbing
+  const hat = createSprite('hat', 'assets/hat.png', {
+    left: '18%',
+    bottom: '42%',
+    width: '120px',
+    height: '100px',
+    zIndex: '3',
+    className: 'bobbing',
+  });
+  hat.classList.add('clickable');
+
+  hat.addEventListener('click', onHatClick);
+}
+
+function onHatClick() {
+  // Replace diatom-guy with diatom-guy-with-hat
+  removeSprite('diatom-guy');
+  const guyWithHat = createSprite('diatom-guy-with-hat', 'assets/diatom-guy-with-hat.png', {
+    left: '8%',
+    bottom: '8%',
+    width: '220px',
+    height: '280px',
+    zIndex: '2',
+    className: 'bobbing',
+  });
+
+  // Remove the hat
+  removeSprite('hat');
+
+  // Show door on the right
+  const door = createSprite('door', 'assets/door.png', {
+    right: '10%',
+    bottom: '8%',
+    width: '160px',
+    height: '260px',
+    zIndex: '2',
+    className: 'fade-in',
+  });
+
+  // Make diatom-guy-with-hat draggable
+  guyWithHat.classList.add('draggable');
+  makeDraggable(guyWithHat, door);
+}
+
+/* ───── DRAG LOGIC ───── */
+function makeDraggable(el, target) {
+  let isDragging = false;
+  let offsetX = 0, offsetY = 0;
+  let startLeft, startBottom;
+
+  function pointerDown(e) {
+    e.preventDefault();
+    isDragging = true;
+    // Pause bobbing while dragging
+    el.classList.remove('bobbing');
+    el.style.animation = 'none';
+
+    const rect = el.getBoundingClientRect();
+    const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+    const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+    offsetX = clientX - rect.left;
+    offsetY = clientY - rect.top;
+
+    startLeft = el.style.left;
+    startBottom = el.style.bottom;
+
+    // Switch from bottom-positioning to top-positioning for smooth dragging
+    el.style.top = rect.top + 'px';
+    el.style.left = rect.left + 'px';
+    el.style.bottom = 'auto';
+    el.style.right = 'auto';
+  }
+
+  function pointerMove(e) {
+    if (!isDragging) return;
+    e.preventDefault();
+    const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+    const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+    el.style.left = (clientX - offsetX) + 'px';
+    el.style.top = (clientY - offsetY) + 'px';
+  }
+
+  function pointerUp(e) {
+    if (!isDragging) return;
+    isDragging = false;
+
+    // Check overlap with target
+    const elRect = el.getBoundingClientRect();
+    const targetRect = target.getBoundingClientRect();
+
+    const overlapX = elRect.right > targetRect.left && elRect.left < targetRect.right;
+    const overlapY = elRect.bottom > targetRect.top && elRect.top < targetRect.bottom;
+
+    if (overlapX && overlapY) {
+      startScene2();
+    } else {
+      // Snap back
+      el.style.left = startLeft;
+      el.style.bottom = startBottom;
+      el.style.top = 'auto';
+      el.style.right = 'auto';
+      el.classList.add('bobbing');
+      el.style.animation = '';
+    }
+  }
+
+  el.addEventListener('mousedown', pointerDown);
+  document.addEventListener('mousemove', pointerMove);
+  document.addEventListener('mouseup', pointerUp);
+
+  el.addEventListener('touchstart', pointerDown, { passive: false });
+  document.addEventListener('touchmove', pointerMove, { passive: false });
+  document.addEventListener('touchend', pointerUp);
+}
+
+/* ───── SCENE 2 ───── */
+function startScene2() {
+  // Clear all sprites
+  game.querySelectorAll('.sprite').forEach(s => s.remove());
+
+  // Fade out background
+  bg.style.opacity = '0';
+  setTimeout(() => {
+    bg.style.backgroundImage = 'none';
+    bg.style.background = '#87CEEB';
+    bg.style.opacity = '1';
+  }, 600);
+
+  setTimeout(() => {
+    // House on the left
+    createSprite('house', 'assets/house.png', {
+      left: '5%',
+      bottom: '8%',
+      width: '320px',
+      height: '300px',
+      zIndex: '1',
+      className: 'fade-in',
+    });
+
+    // Diatom guy with hat in front of the house
+    createSprite('diatom-guy-scene2', 'assets/diatom-guy-with-hat.png', {
+      left: '18%',
+      bottom: '8%',
+      width: '200px',
+      height: '260px',
+      zIndex: '2',
+      className: 'fade-in',
+    });
+
+    // Car at the bottom
+    const car = createSprite('car', 'assets/car.png', {
+      left: '55%',
+      bottom: '5%',
+      width: '280px',
+      height: '160px',
+      zIndex: '2',
+      className: 'fade-in',
+    });
+    car.classList.add('clickable');
+    car.addEventListener('click', onCarClick);
+  }, 700);
+}
+
+function onCarClick() {
+  const car = document.getElementById('car');
+  car.removeEventListener('click', onCarClick);
+  car.classList.remove('clickable');
+
+  // Remove diatom guy
+  removeSprite('diatom-guy-scene2');
+
+  // Replace car image with car-with-driver
+  car.querySelector('img').src = 'assets/car-with-driver.png';
+
+  // Shake the car
+  car.classList.add('shaking');
+
+  // After 1 second, slide the car off screen
+  setTimeout(() => {
+    car.classList.remove('shaking');
+    car.classList.add('slide-off');
+  }, 1000);
+}
+
+/* ───── START ───── */
+startScene1();
+</script>
+</body>
+</html>
