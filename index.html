@@ -163,6 +163,22 @@
       animation: popIn 0.6s ease;
     }
 
+    /* ---------- Restart button ---------- */
+    #restart-btn {
+      width: 140px;
+      left: 50%;
+      bottom: 30px;
+      top: auto;
+      transform: translateX(-50%);
+      display: none;
+      z-index: 25;
+      cursor: pointer;
+    }
+    #restart-btn.visible {
+      display: block;
+      animation: popIn 0.6s ease;
+    }
+
     /* ---------- Keyframes ---------- */
     @keyframes shakeY {
       0%, 100% { margin-top: 0; }
@@ -202,6 +218,7 @@
   <img id="icecubes" src="assets/MakeIceCube/IceCube.png" alt="Ice Cubes" draggable="false">
   <div id="status-text"></div>
   <div id="complete-banner"></div>
+  <img id="restart-btn" src="assets/MakeIceCube/ButtonRestart.svg" alt="Restart" draggable="false">
 </div>
 
 <script>
@@ -214,6 +231,7 @@
   const icecubes = document.getElementById('icecubes');
   const statusText = document.getElementById('status-text');
   const completeBanner = document.getElementById('complete-banner');
+  const restartBtn = document.getElementById('restart-btn');
   const scene    = document.getElementById('scene');
 
   /* -------- state machine -------- */
@@ -336,7 +354,7 @@
     }
     if (state === 'TIMER_DONE') {
       // reveal tray inside fridge
-      fridge.style.animation = '';
+      fridge.classList.remove('shaking');
       fridge.src = 'assets/MakeIceCube/Fridge_open.png';
       tray.style.display = '';
       tray.classList.add('in-fridge');
@@ -368,7 +386,7 @@
       setTimeout(function () {
         statusText.classList.remove('visible');
         statusText.style.display = 'none';
-        fridge.style.animation = 'swayFridge 0.5s ease-in-out infinite';
+        fridge.classList.add('shaking');
       }, 2000);
       return;
     }
@@ -389,7 +407,62 @@
     icecubes.classList.add('visible');
     completeBanner.innerHTML = 'Ice Cubes Ready!';
     completeBanner.classList.add('visible');
+    restartBtn.classList.add('visible');
     state = 'COMPLETE';
+  });
+
+  /* ============================================================
+     RESTART
+     ============================================================ */
+  restartBtn.addEventListener('click', function () {
+    // hide completion elements
+    icecubes.classList.remove('visible');
+    icecubes.style.display = 'none';
+    completeBanner.classList.remove('visible');
+    completeBanner.style.display = 'none';
+    restartBtn.classList.remove('visible');
+
+    // reset kettle
+    kettle.style.display = '';
+    kettle.style.opacity = '';
+    kettle.style.transition = '';
+    kettle.style.left = '';
+    kettle.style.top = '';
+    kettle.classList.remove('pouring');
+    kettle.classList.add('shaking');
+    kettle.dataset.draggable = 'true';
+
+    // reset tray
+    tray.style.display = '';
+    tray.style.opacity = '';
+    tray.style.transition = '';
+    tray.style.cursor = '';
+    tray.style.left = '';
+    tray.style.top = '';
+    tray.classList.remove('in-fridge', 'moved-down', 'swaying');
+    tray.src = 'assets/MakeIceCube/IceCubeTray_empty.png';
+    tray.dataset.draggable = 'true';
+
+    // reset fridge
+    fridge.style.display = '';
+    fridge.style.opacity = '';
+    fridge.style.transition = '';
+    fridge.style.animation = '';
+    fridge.classList.remove('center', 'shaking');
+    fridge.src = 'assets/MakeIceCube/Fridge_close.png';
+
+    // reset timer
+    timer.style.display = '';
+    timer.style.opacity = '';
+    timer.style.transition = '';
+    timer.classList.remove('center', 'shaking');
+
+    // reset status text
+    statusText.classList.remove('visible');
+    statusText.style.display = '';
+    statusText.textContent = '';
+
+    state = 'START';
   });
 
   /* ============================================================
