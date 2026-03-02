@@ -65,9 +65,9 @@
       animation: shakeY 0.4s ease-in-out infinite;
     }
     #fridge.center {
-      left: calc(50% - 250px);
-      top: calc(50% - 300px);
-      width: 500px;
+      left: calc(50% - 300px);
+      top: calc(50% - 360px);
+      width: 600px;
       transform: scale(1);
     }
 
@@ -122,9 +122,9 @@
     #status-text {
       position: absolute;
       left: 50%;
-      top: 50%;
+      top: calc(50% + 200px);
       transform: translate(-50%, -50%);
-      font-size: 36px;
+      font-size: 52px;
       font-weight: 700;
       color: #1a6fbf;
       text-align: center;
@@ -134,7 +134,7 @@
     }
     #status-text.visible {
       display: block;
-      animation: popIn 0.4s ease;
+      animation: swayX 0.5s ease-in-out infinite;
     }
 
     /* ---------- Instruction hint (removed) ---------- */
@@ -162,6 +162,16 @@
     @keyframes shakeY {
       0%, 100% { margin-top: 0; }
       50% { margin-top: -8px; }
+    }
+    @keyframes swayX {
+      0%, 100% { transform: translate(-50%, -50%) rotate(0deg); }
+      25% { transform: translate(-50%, -50%) rotate(-5deg); }
+      75% { transform: translate(-50%, -50%) rotate(5deg); }
+    }
+    @keyframes swayFridge {
+      0%, 100% { transform: scale(1) rotate(0deg); }
+      25% { transform: scale(1) rotate(-3deg); }
+      75% { transform: scale(1) rotate(3deg); }
     }
     @keyframes popIn {
       0% { transform: translate(-50%, -50%) scale(0.5); opacity: 0; }
@@ -312,6 +322,7 @@
     }
     if (state === 'TIMER_DONE') {
       // reveal tray inside fridge
+      fridge.style.animation = '';
       fridge.src = 'assets/MakeIceCube/Fridge_open.png';
       tray.style.display = '';
       tray.classList.add('in-fridge');
@@ -342,6 +353,7 @@
       setTimeout(function () {
         statusText.classList.remove('visible');
         statusText.style.display = 'none';
+        fridge.style.animation = 'swayFridge 0.5s ease-in-out infinite';
       }, 2000);
       return;
     }
