@@ -73,7 +73,11 @@
 
     /* ---------- Timer / clock ---------- */
     #timer {
+      position: absolute;
+      cursor: pointer;
+      transition: left 0.6s ease, top 0.6s ease, transform 0.6s ease, opacity 0.6s ease;
       width: 80px;
+      aspect-ratio: 1 / 1;
       left: 40px;
       top: 500px;
       transform: scale(0.75);
@@ -205,7 +209,33 @@
   <img id="kettle" src="assets/MakeIceCube/kettle.png" alt="Kettle" class="shaking" draggable="false">
   <img id="tray"   src="assets/MakeIceCube/IceCubeTray_empty.png" alt="Ice Cube Tray" draggable="false">
   <img id="fridge" src="assets/MakeIceCube/Fridge_close.png" alt="Refrigerator" draggable="false">
-  <img id="timer"  src="assets/MakeIceCube/Timer.svg" alt="Timer" draggable="false">
+  <svg id="timer" viewBox="0 0 300 300" xmlns="http://www.w3.org/2000/svg">
+    <g filter="url(#timerF0)"><circle cx="150" cy="150" r="150" fill="#8DB9FF"/></g>
+    <g filter="url(#timerF1)"><circle cx="150" cy="150" r="105" fill="#8DB9FF"/></g>
+    <circle cx="150" cy="22" r="17" fill="white" fill-opacity="0.2"/>
+    <circle id="timer-knob" cx="150" cy="22" r="17" fill="white" fill-opacity="0.35" style="cursor:grab"/>
+    <text id="timer-display" x="150" y="162" text-anchor="middle" font-family="'Courier New',monospace" font-size="46" font-weight="bold" fill="black">00:00</text>
+    <defs>
+      <filter id="timerF0" x="0" y="0" width="300" height="300" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB">
+        <feFlood flood-opacity="0" result="BackgroundImageFix"/>
+        <feBlend mode="normal" in="SourceGraphic" in2="BackgroundImageFix" result="shape"/>
+        <feColorMatrix in="SourceAlpha" type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 127 0" result="hardAlpha"/>
+        <feOffset/><feGaussianBlur stdDeviation="10"/>
+        <feComposite in2="hardAlpha" operator="arithmetic" k2="-1" k3="1"/>
+        <feColorMatrix type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0.3 0"/>
+        <feBlend mode="normal" in2="shape" result="effect1_innerShadow"/>
+      </filter>
+      <filter id="timerF1" x="25" y="25" width="250" height="250" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB">
+        <feFlood flood-opacity="0" result="BackgroundImageFix"/>
+        <feColorMatrix in="SourceAlpha" type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 127 0" result="hardAlpha"/>
+        <feOffset/><feGaussianBlur stdDeviation="10"/>
+        <feComposite in2="hardAlpha" operator="out"/>
+        <feColorMatrix type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0.25 0"/>
+        <feBlend mode="normal" in2="BackgroundImageFix" result="effect1_dropShadow"/>
+        <feBlend mode="normal" in="SourceGraphic" in2="effect1_dropShadow" result="shape"/>
+      </filter>
+    </defs>
+  </svg>
   <img id="icecubes" src="assets/MakeIceCube/IceCube.png" alt="Ice Cubes" draggable="false">
   <img id="status-text" src="assets/MakeIceCube/20MinutesLaterText.svg" alt="20 minutes later" draggable="false">
   <img id="complete-banner" src="assets/MakeIceCube/IceCubeReadyText.svg" alt="Ice Cubes Ready" draggable="false">
@@ -383,6 +413,69 @@
   });
 
   /* ============================================================
+     TIMER KNOB DRAG (circular path)
+     ============================================================ */
+  var timerKnob = document.getElementById('timer-knob');
+  var timerDisplay = document.getElementById('timer-display');
+  var timerValue = 0;
+  var timerPrevAngle = null;
+  var timerDragging = false;
+  var TIMER_TRACK_R = 128;
+  var TIMER_PER_REV = 2000;
+
+  function pointerToTimerSvg(e) {
+    var rect = timer.getBoundingClientRect();
+    return {
+      x: (e.clientX - rect.left) / rect.width * 300,
+      y: (e.clientY - rect.top) / rect.height * 300
+    };
+  }
+
+  function updateTimerDisplay() {
+    var v = Math.round(timerValue);
+    var hi = Math.floor(v / 100);
+    var lo = v % 100;
+    timerDisplay.textContent =
+      String(hi).padStart(2, '0') + ':' + String(lo).padStart(2, '0');
+  }
+
+  timerKnob.addEventListener('pointerdown', function (e) {
+    e.stopPropagation();
+    timerDragging = true;
+    timerKnob.setPointerCapture(e.pointerId);
+    timerKnob.style.cursor = 'grabbing';
+    var pos = pointerToTimerSvg(e);
+    timerPrevAngle = Math.atan2(pos.y - 150, pos.x - 150);
+  });
+
+  timerKnob.addEventListener('pointermove', function (e) {
+    if (!timerDragging) return;
+    var pos = pointerToTimerSvg(e);
+    var angle = Math.atan2(pos.y - 150, pos.x - 150);
+    if (timerPrevAngle !== null) {
+      var delta = angle - timerPrevAngle;
+      if (delta > Math.PI)  delta -= 2 * Math.PI;
+      if (delta < -Math.PI) delta += 2 * Math.PI;
+      timerValue += delta / (2 * Math.PI) * TIMER_PER_REV;
+      timerValue = Math.max(0, Math.min(9999, timerValue));
+      updateTimerDisplay();
+    }
+    timerPrevAngle = angle;
+    timerKnob.setAttribute('cx', 150 + TIMER_TRACK_R * Math.cos(angle));
+    timerKnob.setAttribute('cy', 150 + TIMER_TRACK_R * Math.sin(angle));
+  });
+
+  timerKnob.addEventListener('pointerup', function (e) {
+    timerDragging = false;
+    timerKnob.style.cursor = 'grab';
+    timerPrevAngle = null;
+  });
+
+  timerKnob.addEventListener('click', function (e) {
+    e.stopPropagation();
+  });
+
+  /* ============================================================
      TRAY CLICK (inside fridge → reveal ice cubes)
      ============================================================ */
   tray.addEventListener('click', function (e) {
@@ -445,6 +538,11 @@
     timer.style.opacity = '';
     timer.style.transition = '';
     timer.classList.remove('center', 'shaking');
+    timerKnob.setAttribute('cx', '150');
+    timerKnob.setAttribute('cy', '22');
+    timerDisplay.textContent = '00:00';
+    timerValue = 0;
+    timerPrevAngle = null;
 
     // reset status text
     statusText.classList.remove('visible');
