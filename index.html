@@ -104,6 +104,10 @@
       transform: scale(0.6);
       z-index: 5;
     }
+    #tray.in-fridge.swaying {
+      animation: swayTray 0.5s ease-in-out infinite;
+      transform-origin: center center;
+    }
 
     /* ---------- Ice cubes (final) ---------- */
     #icecubes {
@@ -173,6 +177,11 @@
       0%, 100% { transform: scale(1) rotate(0deg); }
       25% { transform: scale(1) rotate(-3deg); }
       75% { transform: scale(1) rotate(3deg); }
+    }
+    @keyframes swayTray {
+      0%, 100% { transform: scale(0.6) rotate(0deg); }
+      25% { transform: scale(0.6) rotate(-6deg); }
+      75% { transform: scale(0.6) rotate(6deg); }
     }
     @keyframes icecubeIn {
       0% { transform: translate(-50%, -50%) scale(0.5); opacity: 0; }
@@ -331,6 +340,7 @@
       fridge.src = 'assets/MakeIceCube/Fridge_open.png';
       tray.style.display = '';
       tray.classList.add('in-fridge');
+      tray.classList.add('swaying');
       tray.dataset.draggable = 'false';
       tray.style.cursor = 'pointer';
       state = 'FRIDGE_REVEAL';
