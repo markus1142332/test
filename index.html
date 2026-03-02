@@ -99,8 +99,8 @@
     /* ---------- Tray inside fridge ---------- */
     #tray.in-fridge {
       width: 120px;
-      left: calc(50% - 210px);
-      top: calc(50% - 250px);
+      left: calc(50% - 10px);
+      top: calc(50% - 550px);
       transform: scale(0.6);
       z-index: 5;
     }
@@ -108,14 +108,15 @@
     /* ---------- Ice cubes (final) ---------- */
     #icecubes {
       width: 260px;
-      left: calc(50% - 130px);
-      top: calc(50% - 100px);
+      left: 50%;
+      top: 50%;
+      transform: translate(-50%, -50%);
       display: none;
       z-index: 10;
     }
     #icecubes.visible {
       display: block;
-      animation: popIn 0.5s ease;
+      animation: icecubeIn 0.5s ease;
     }
 
     /* ---------- Status text ---------- */
@@ -172,6 +173,10 @@
       0%, 100% { transform: scale(1) rotate(0deg); }
       25% { transform: scale(1) rotate(-3deg); }
       75% { transform: scale(1) rotate(3deg); }
+    }
+    @keyframes icecubeIn {
+      0% { transform: translate(-50%, -50%) scale(0.5); opacity: 0; }
+      100% { transform: translate(-50%, -50%) scale(1); opacity: 1; }
     }
     @keyframes popIn {
       0% { transform: translate(-50%, -50%) scale(0.5); opacity: 0; }
