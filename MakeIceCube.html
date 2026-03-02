@@ -1,0 +1,411 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Make Ice Cubes</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      width: 100vw;
+      height: 100vh;
+      overflow: hidden;
+      background: linear-gradient(135deg, #e0f0ff 0%, #c8e6ff 100%);
+      font-family: 'Segoe UI', Arial, sans-serif;
+      user-select: none;
+    }
+
+    .scene {
+      position: relative;
+      width: 100%;
+      height: 100%;
+    }
+
+    /* ---------- shared image behaviour ---------- */
+    .scene img {
+      position: absolute;
+      cursor: pointer;
+      transition: left 0.6s ease, top 0.6s ease, transform 0.6s ease, opacity 0.6s ease;
+    }
+
+    /* ---------- Kettle ---------- */
+    #kettle {
+      width: 150px;
+      right: 80px;
+      top: 60px;
+      left: auto;
+      cursor: grab;
+    }
+    #kettle.shaking {
+      animation: shakeY 0.4s ease-in-out infinite;
+    }
+    #kettle.pouring {
+      transition: transform 0.6s ease;
+      transform: rotate(-45deg);
+    }
+
+    /* ---------- Ice-cube tray ---------- */
+    #tray {
+      width: 200px;
+      left: 220px;
+      top: 320px;
+      cursor: grab;
+    }
+
+    /* ---------- Fridge ---------- */
+    #fridge {
+      width: 120px;
+      left: 30px;
+      top: 180px;
+      transform: scale(0.85);
+      transform-origin: center center;
+    }
+    #fridge.shaking {
+      animation: shakeY 0.4s ease-in-out infinite;
+    }
+    #fridge.center {
+      left: calc(50% - 150px);
+      top: calc(50% - 220px);
+      width: 300px;
+      transform: scale(1);
+    }
+
+    /* ---------- Timer / clock ---------- */
+    #timer {
+      width: 80px;
+      left: 40px;
+      top: 500px;
+      transform: scale(0.75);
+      opacity: 0.35;
+      transform-origin: center center;
+    }
+    #timer.shaking {
+      animation: shakeY 0.35s ease-in-out infinite;
+    }
+    #timer.center {
+      left: calc(50% - 70px);
+      top: calc(50% - 70px);
+      width: 140px;
+      transform: scale(1);
+      opacity: 1;
+    }
+
+    /* ---------- Tray inside fridge ---------- */
+    #tray.in-fridge {
+      width: 100px;
+      left: calc(50% - 50px);
+      top: calc(50% - 20px);
+      transform: scale(0.6);
+      z-index: 5;
+    }
+
+    /* ---------- Ice cubes (final) ---------- */
+    #icecubes {
+      width: 260px;
+      left: calc(50% - 130px);
+      top: calc(50% - 100px);
+      display: none;
+      z-index: 10;
+    }
+    #icecubes.visible {
+      display: block;
+      animation: popIn 0.5s ease;
+    }
+
+    /* ---------- Status text ---------- */
+    #status-text {
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      transform: translate(-50%, -50%);
+      font-size: 36px;
+      font-weight: 700;
+      color: #1a6fbf;
+      text-align: center;
+      display: none;
+      z-index: 15;
+      text-shadow: 0 2px 8px rgba(0,0,0,0.12);
+    }
+    #status-text.visible {
+      display: block;
+      animation: popIn 0.4s ease;
+    }
+
+    /* ---------- Instruction hint ---------- */
+    #hint {
+      position: absolute;
+      bottom: 30px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: rgba(0,0,0,0.55);
+      color: #fff;
+      padding: 12px 28px;
+      border-radius: 30px;
+      font-size: 16px;
+      z-index: 100;
+      transition: opacity 0.3s;
+      pointer-events: none;
+    }
+
+    /* ---------- Completion banner ---------- */
+    #complete-banner {
+      position: absolute;
+      left: 50%;
+      bottom: 120px;
+      transform: translateX(-50%);
+      font-size: 42px;
+      font-weight: 800;
+      color: #0d8a4a;
+      text-align: center;
+      display: none;
+      z-index: 20;
+      text-shadow: 0 2px 8px rgba(0,0,0,0.10);
+    }
+    #complete-banner.visible {
+      display: block;
+      animation: popIn 0.6s ease;
+    }
+
+    /* ---------- Keyframes ---------- */
+    @keyframes shakeY {
+      0%, 100% { margin-top: 0; }
+      50% { margin-top: -8px; }
+    }
+    @keyframes popIn {
+      0% { transform: translate(-50%, -50%) scale(0.5); opacity: 0; }
+      100% { transform: translate(-50%, -50%) scale(1); opacity: 1; }
+    }
+  </style>
+</head>
+<body>
+<div class="scene" id="scene">
+  <img id="kettle" src="assets/MakeIceCube/kettle.png" alt="Kettle" class="shaking" draggable="false">
+  <img id="tray"   src="assets/MakeIceCube/IceCubeTray_empty.png" alt="Ice Cube Tray" draggable="false">
+  <img id="fridge" src="assets/MakeIceCube/Fridge_close.png" alt="Refrigerator" draggable="false">
+  <img id="timer"  src="assets/MakeIceCube/clock.png" alt="Timer" draggable="false">
+  <img id="icecubes" src="assets/MakeIceCube/IceCube.png" alt="Ice Cubes" draggable="false">
+  <div id="status-text"></div>
+  <div id="complete-banner"></div>
+  <div id="hint"></div>
+</div>
+
+<script>
+(function () {
+  /* -------- element refs -------- */
+  const kettle   = document.getElementById('kettle');
+  const tray     = document.getElementById('tray');
+  const fridge   = document.getElementById('fridge');
+  const timer    = document.getElementById('timer');
+  const icecubes = document.getElementById('icecubes');
+  const statusText = document.getElementById('status-text');
+  const completeBanner = document.getElementById('complete-banner');
+  const hint     = document.getElementById('hint');
+  const scene    = document.getElementById('scene');
+
+  /* -------- state machine -------- */
+  let state = 'START';
+  // START            → drag kettle onto tray
+  // TRAY_FILLED      → click fridge to enlarge
+  // FRIDGE_CENTERED  → click fridge to open
+  // FRIDGE_OPEN      → drag tray into fridge
+  // TRAY_IN_FRIDGE   → timer shaking, tap timer to enlarge
+  // TIMER_CENTERED   → tap timer to show countdown text
+  // TIMER_DONE       → tap fridge to open & reveal tray
+  // FRIDGE_REVEAL    → tap tray to show ice cubes
+  // COMPLETE         → done
+
+  showHint('Drag the kettle over the ice cube tray');
+
+  /* ============================================================
+     DRAG HELPERS  (pointer-based, works on touch + mouse)
+     ============================================================ */
+  function makeDraggable(el, onDrop) {
+    let dragging = false;
+    let offsetX, offsetY;
+    let startLeft, startTop;
+
+    el.addEventListener('pointerdown', function (e) {
+      if (el.dataset.draggable === 'false') return;
+      dragging = true;
+      el.setPointerCapture(e.pointerId);
+      const rect = el.getBoundingClientRect();
+      offsetX = e.clientX - rect.left;
+      offsetY = e.clientY - rect.top;
+      startLeft = rect.left;
+      startTop  = rect.top;
+      el.style.transition = 'none';
+      el.style.zIndex = 50;
+      el.style.cursor = 'grabbing';
+    });
+
+    el.addEventListener('pointermove', function (e) {
+      if (!dragging) return;
+      el.style.left = (e.clientX - offsetX) + 'px';
+      el.style.top  = (e.clientY - offsetY) + 'px';
+    });
+
+    el.addEventListener('pointerup', function (e) {
+      if (!dragging) return;
+      dragging = false;
+      el.style.cursor = 'grab';
+      el.style.zIndex = '';
+      el.style.transition = '';
+      onDrop(el, e);
+    });
+  }
+
+  /* ============================================================
+     KETTLE DRAG → pour onto tray
+     ============================================================ */
+  makeDraggable(kettle, function (el, e) {
+    if (state !== 'START') return resetPosition(kettle);
+    if (isOverlapping(kettle, tray)) {
+      kettle.classList.remove('shaking');
+      kettle.classList.add('pouring');
+      // position kettle above tray visually
+      const trayRect = tray.getBoundingClientRect();
+      kettle.style.left = (trayRect.left + trayRect.width / 2 - 75) + 'px';
+      kettle.style.top  = (trayRect.top - 100) + 'px';
+
+      setTimeout(function () {
+        tray.src = 'assets/MakeIceCube/IceCubeTray_full.png';
+        state = 'TRAY_FILLED';
+        kettle.style.transition = 'opacity 0.5s';
+        kettle.style.opacity = '0';
+        setTimeout(function () { kettle.style.display = 'none'; }, 500);
+        fridge.classList.add('shaking');
+        showHint('Tap the refrigerator');
+      }, 700);
+    } else {
+      resetPosition(kettle);
+    }
+  });
+
+  /* ============================================================
+     TRAY DRAG → put into fridge
+     ============================================================ */
+  makeDraggable(tray, function (el, e) {
+    if (state !== 'FRIDGE_OPEN') return resetPosition(tray);
+    if (isOverlapping(tray, fridge)) {
+      // shrink tray into fridge
+      tray.classList.add('in-fridge');
+      tray.style.left = '';
+      tray.style.top  = '';
+      setTimeout(function () {
+        tray.style.display = 'none';
+        fridge.src = 'assets/MakeIceCube/Fridge_close.png';
+        state = 'TRAY_IN_FRIDGE';
+        timer.classList.add('shaking');
+        showHint('Tap the timer');
+      }, 700);
+    } else {
+      resetPosition(tray);
+    }
+  });
+
+  /* ============================================================
+     FRIDGE CLICKS
+     ============================================================ */
+  fridge.addEventListener('click', function () {
+    if (state === 'TRAY_FILLED') {
+      // move fridge to center & enlarge
+      fridge.classList.remove('shaking');
+      fridge.classList.add('center');
+      state = 'FRIDGE_CENTERED';
+      showHint('Tap the refrigerator to open it');
+      return;
+    }
+    if (state === 'FRIDGE_CENTERED') {
+      fridge.src = 'assets/MakeIceCube/Fridge_open.png';
+      state = 'FRIDGE_OPEN';
+      tray.dataset.draggable = 'true';
+      showHint('Drag the ice tray into the refrigerator');
+      return;
+    }
+    if (state === 'TIMER_DONE') {
+      // reveal tray inside fridge
+      fridge.src = 'assets/MakeIceCube/Fridge_open.png';
+      tray.style.display = '';
+      tray.classList.add('in-fridge');
+      tray.dataset.draggable = 'false';
+      tray.style.cursor = 'pointer';
+      state = 'FRIDGE_REVEAL';
+      showHint('Tap the ice tray inside the refrigerator');
+      return;
+    }
+  });
+
+  /* ============================================================
+     TIMER CLICKS
+     ============================================================ */
+  timer.addEventListener('click', function () {
+    if (state === 'TRAY_IN_FRIDGE') {
+      timer.classList.remove('shaking');
+      timer.classList.add('center');
+      state = 'TIMER_CENTERED';
+      showHint('Tap the timer again');
+      return;
+    }
+    if (state === 'TIMER_CENTERED') {
+      timer.style.transition = 'opacity 0.4s';
+      timer.style.opacity = '0';
+      setTimeout(function () { timer.style.display = 'none'; }, 400);
+      statusText.textContent = '20 minutes remaining';
+      statusText.classList.add('visible');
+      state = 'TIMER_DONE';
+      setTimeout(function () {
+        statusText.classList.remove('visible');
+        statusText.style.display = 'none';
+        showHint('Tap the refrigerator');
+      }, 2000);
+      return;
+    }
+  });
+
+  /* ============================================================
+     TRAY CLICK (inside fridge → reveal ice cubes)
+     ============================================================ */
+  tray.addEventListener('click', function (e) {
+    if (state !== 'FRIDGE_REVEAL') return;
+    e.stopPropagation();
+    tray.style.transition = 'opacity 0.3s';
+    tray.style.opacity = '0';
+    setTimeout(function () { tray.style.display = 'none'; }, 300);
+    fridge.style.transition = 'opacity 0.5s';
+    fridge.style.opacity = '0';
+    setTimeout(function () { fridge.style.display = 'none'; }, 500);
+    icecubes.classList.add('visible');
+    completeBanner.innerHTML = 'Ice Cubes Ready!';
+    completeBanner.classList.add('visible');
+    state = 'COMPLETE';
+    showHint('');
+  });
+
+  /* ============================================================
+     UTILITY
+     ============================================================ */
+  function isOverlapping(a, b) {
+    const ra = a.getBoundingClientRect();
+    const rb = b.getBoundingClientRect();
+    return !(ra.right < rb.left || ra.left > rb.right || ra.bottom < rb.top || ra.top > rb.bottom);
+  }
+
+  function resetPosition(el) {
+    // remove inline left/top so CSS takes over
+    el.style.left = '';
+    el.style.top  = '';
+  }
+
+  function showHint(text) {
+    hint.textContent = text;
+    hint.style.opacity = text ? '1' : '0';
+  }
+
+  /* -------- initial draggable flags -------- */
+  kettle.dataset.draggable = 'true';
+  tray.dataset.draggable   = 'true';
+})();
+</script>
+</body>
+</html>
