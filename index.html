@@ -31,7 +31,7 @@
 
     /* ---------- Kettle ---------- */
     #kettle {
-      width: 150px;
+      width: 220px;
       right: 80px;
       top: 60px;
       left: auto;
@@ -65,9 +65,9 @@
       animation: shakeY 0.4s ease-in-out infinite;
     }
     #fridge.center {
-      left: calc(50% - 150px);
-      top: calc(50% - 220px);
-      width: 300px;
+      left: calc(50% - 175px);
+      top: calc(50% - 260px);
+      width: 350px;
       transform: scale(1);
     }
 
@@ -89,6 +89,11 @@
       width: 140px;
       transform: scale(1);
       opacity: 1;
+    }
+
+    /* ---------- Tray moved down (avoid fridge overlap) ---------- */
+    #tray.moved-down {
+      top: calc(100% - 160px);
     }
 
     /* ---------- Tray inside fridge ---------- */
@@ -249,7 +254,7 @@
       kettle.classList.add('pouring');
       // position kettle above tray visually
       const trayRect = tray.getBoundingClientRect();
-      kettle.style.left = (trayRect.left + trayRect.width / 2 - 75 + 100) + 'px';
+      kettle.style.left = (trayRect.left + trayRect.width / 2 - 110 + 100) + 'px';
       kettle.style.top  = (trayRect.top - 100) + 'px';
 
       setTimeout(function () {
@@ -294,6 +299,7 @@
       // move fridge to center & enlarge
       fridge.classList.remove('shaking');
       fridge.classList.add('center');
+      tray.classList.add('moved-down');
       state = 'FRIDGE_CENTERED';
       return;
     }
