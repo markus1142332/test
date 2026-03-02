@@ -47,9 +47,9 @@
 
     /* ---------- Ice-cube tray ---------- */
     #tray {
-      width: 200px;
-      left: 220px;
-      top: 320px;
+      width: 300px;
+      left: calc(50% - 150px);
+      top: 280px;
       cursor: grab;
     }
 
@@ -132,21 +132,7 @@
       animation: popIn 0.4s ease;
     }
 
-    /* ---------- Instruction hint ---------- */
-    #hint {
-      position: absolute;
-      bottom: 30px;
-      left: 50%;
-      transform: translateX(-50%);
-      background: rgba(0,0,0,0.55);
-      color: #fff;
-      padding: 12px 28px;
-      border-radius: 30px;
-      font-size: 16px;
-      z-index: 100;
-      transition: opacity 0.3s;
-      pointer-events: none;
-    }
+    /* ---------- Instruction hint (removed) ---------- */
 
     /* ---------- Completion banner ---------- */
     #complete-banner {
@@ -187,7 +173,6 @@
   <img id="icecubes" src="assets/MakeIceCube/IceCube.png" alt="Ice Cubes" draggable="false">
   <div id="status-text"></div>
   <div id="complete-banner"></div>
-  <div id="hint"></div>
 </div>
 
 <script>
@@ -200,7 +185,6 @@
   const icecubes = document.getElementById('icecubes');
   const statusText = document.getElementById('status-text');
   const completeBanner = document.getElementById('complete-banner');
-  const hint     = document.getElementById('hint');
   const scene    = document.getElementById('scene');
 
   /* -------- state machine -------- */
@@ -215,7 +199,7 @@
   // FRIDGE_REVEAL    → tap tray to show ice cubes
   // COMPLETE         → done
 
-  showHint('Drag the kettle over the ice cube tray');
+
 
   /* ============================================================
      DRAG HELPERS  (pointer-based, works on touch + mouse)
@@ -265,7 +249,7 @@
       kettle.classList.add('pouring');
       // position kettle above tray visually
       const trayRect = tray.getBoundingClientRect();
-      kettle.style.left = (trayRect.left + trayRect.width / 2 - 75) + 'px';
+      kettle.style.left = (trayRect.left + trayRect.width / 2 - 75 + 100) + 'px';
       kettle.style.top  = (trayRect.top - 100) + 'px';
 
       setTimeout(function () {
@@ -275,7 +259,6 @@
         kettle.style.opacity = '0';
         setTimeout(function () { kettle.style.display = 'none'; }, 500);
         fridge.classList.add('shaking');
-        showHint('Tap the refrigerator');
       }, 700);
     } else {
       resetPosition(kettle);
@@ -297,7 +280,6 @@
         fridge.src = 'assets/MakeIceCube/Fridge_close.png';
         state = 'TRAY_IN_FRIDGE';
         timer.classList.add('shaking');
-        showHint('Tap the timer');
       }, 700);
     } else {
       resetPosition(tray);
@@ -313,14 +295,12 @@
       fridge.classList.remove('shaking');
       fridge.classList.add('center');
       state = 'FRIDGE_CENTERED';
-      showHint('Tap the refrigerator to open it');
       return;
     }
     if (state === 'FRIDGE_CENTERED') {
       fridge.src = 'assets/MakeIceCube/Fridge_open.png';
       state = 'FRIDGE_OPEN';
       tray.dataset.draggable = 'true';
-      showHint('Drag the ice tray into the refrigerator');
       return;
     }
     if (state === 'TIMER_DONE') {
@@ -331,7 +311,6 @@
       tray.dataset.draggable = 'false';
       tray.style.cursor = 'pointer';
       state = 'FRIDGE_REVEAL';
-      showHint('Tap the ice tray inside the refrigerator');
       return;
     }
   });
@@ -344,7 +323,6 @@
       timer.classList.remove('shaking');
       timer.classList.add('center');
       state = 'TIMER_CENTERED';
-      showHint('Tap the timer again');
       return;
     }
     if (state === 'TIMER_CENTERED') {
@@ -357,7 +335,6 @@
       setTimeout(function () {
         statusText.classList.remove('visible');
         statusText.style.display = 'none';
-        showHint('Tap the refrigerator');
       }, 2000);
       return;
     }
@@ -379,7 +356,6 @@
     completeBanner.innerHTML = 'Ice Cubes Ready!';
     completeBanner.classList.add('visible');
     state = 'COMPLETE';
-    showHint('');
   });
 
   /* ============================================================
@@ -395,11 +371,6 @@
     // remove inline left/top so CSS takes over
     el.style.left = '';
     el.style.top  = '';
-  }
-
-  function showHint(text) {
-    hint.textContent = text;
-    hint.style.opacity = text ? '1' : '0';
   }
 
   /* -------- initial draggable flags -------- */
