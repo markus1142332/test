@@ -125,17 +125,12 @@
 
     /* ---------- Status text ---------- */
     #status-text {
-      position: absolute;
+      width: 340px;
       left: 50%;
       top: calc(50% + 200px);
       transform: translate(-50%, -50%);
-      font-size: 52px;
-      font-weight: 700;
-      color: #1a6fbf;
-      text-align: center;
       display: none;
       z-index: 15;
-      text-shadow: 0 2px 8px rgba(0,0,0,0.12);
     }
     #status-text.visible {
       display: block;
@@ -146,17 +141,13 @@
 
     /* ---------- Completion banner ---------- */
     #complete-banner {
-      position: absolute;
+      width: 340px;
       left: 50%;
       bottom: 120px;
+      top: auto;
       transform: translateX(-50%);
-      font-size: 42px;
-      font-weight: 800;
-      color: #0d8a4a;
-      text-align: center;
       display: none;
       z-index: 20;
-      text-shadow: 0 2px 8px rgba(0,0,0,0.10);
     }
     #complete-banner.visible {
       display: block;
@@ -165,7 +156,7 @@
 
     /* ---------- Restart button ---------- */
     #restart-btn {
-      width: 140px;
+      width: 182px;
       left: 50%;
       bottom: 30px;
       top: auto;
@@ -216,8 +207,8 @@
   <img id="fridge" src="assets/MakeIceCube/Fridge_close.png" alt="Refrigerator" draggable="false">
   <img id="timer"  src="assets/MakeIceCube/clock.png" alt="Timer" draggable="false">
   <img id="icecubes" src="assets/MakeIceCube/IceCube.png" alt="Ice Cubes" draggable="false">
-  <div id="status-text"></div>
-  <div id="complete-banner"></div>
+  <img id="status-text" src="assets/MakeIceCube/20MinutesLaterText.svg" alt="20 minutes later" draggable="false">
+  <img id="complete-banner" src="assets/MakeIceCube/IceCubeReadyText.svg" alt="Ice Cubes Ready" draggable="false">
   <img id="restart-btn" src="assets/MakeIceCube/ButtonRestart.svg" alt="Restart" draggable="false">
 </div>
 
@@ -380,7 +371,6 @@
       timer.style.transition = 'opacity 0.4s';
       timer.style.opacity = '0';
       setTimeout(function () { timer.style.display = 'none'; }, 400);
-      statusText.textContent = '20 minutes remaining';
       statusText.classList.add('visible');
       state = 'TIMER_DONE';
       setTimeout(function () {
@@ -405,7 +395,6 @@
     fridge.style.opacity = '0';
     setTimeout(function () { fridge.style.display = 'none'; }, 500);
     icecubes.classList.add('visible');
-    completeBanner.innerHTML = 'Ice Cubes Ready!';
     completeBanner.classList.add('visible');
     restartBtn.classList.add('visible');
     state = 'COMPLETE';
@@ -460,7 +449,6 @@
     // reset status text
     statusText.classList.remove('visible');
     statusText.style.display = '';
-    statusText.textContent = '';
 
     state = 'START';
   });
