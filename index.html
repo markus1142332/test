@@ -65,9 +65,9 @@
       animation: shakeY 0.4s ease-in-out infinite;
     }
     #fridge.center {
-      left: calc(50% - 225px);
+      left: calc(50% - 250px);
       top: calc(50% - 300px);
-      width: 450px;
+      width: 500px;
       transform: scale(1);
     }
 
@@ -84,7 +84,7 @@
       animation: shakeY 0.35s ease-in-out infinite;
     }
     #timer.center {
-      left: calc(50% - 70px);
+      left: calc(50% + 130px);
       top: calc(50% - 70px);
       width: 140px;
       transform: scale(1);
@@ -99,8 +99,8 @@
     /* ---------- Tray inside fridge ---------- */
     #tray.in-fridge {
       width: 120px;
-      left: calc(50% - 80px);
-      top: calc(50% - 60px);
+      left: calc(50% - 210px);
+      top: calc(50% - 250px);
       transform: scale(0.6);
       z-index: 5;
     }
@@ -277,6 +277,7 @@
     if (state !== 'FRIDGE_OPEN') return resetPosition(tray);
     if (isOverlapping(tray, fridge)) {
       // shrink tray into fridge
+      tray.classList.remove('moved-down');
       tray.classList.add('in-fridge');
       tray.style.left = '';
       tray.style.top  = '';
