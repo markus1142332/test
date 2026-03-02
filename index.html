@@ -129,16 +129,20 @@
 
     /* ---------- Status text ---------- */
     #status-text {
-      width: 340px;
+      position: absolute;
       left: 50%;
       top: calc(50% + 200px);
       transform: translate(-50%, -50%);
       display: none;
       z-index: 15;
+      font-family: Arial, Helvetica, sans-serif;
+      font-size: 30px;
+      font-weight: bold;
+      color: black;
+      white-space: nowrap;
     }
     #status-text.visible {
       display: block;
-      animation: swayX 0.5s ease-in-out infinite;
     }
 
     /* ---------- Instruction hint (removed) ---------- */
@@ -237,7 +241,7 @@
     </defs>
   </svg>
   <img id="icecubes" src="assets/MakeIceCube/IceCube.png" alt="Ice Cubes" draggable="false">
-  <img id="status-text" src="assets/MakeIceCube/20MinutesLaterText.svg" alt="20 minutes later" draggable="false">
+  <div id="status-text"><span id="status-time">00:00</span> Minutes later...</div>
   <img id="complete-banner" src="assets/MakeIceCube/IceCubeReadyText.svg" alt="Ice Cubes Ready" draggable="false">
   <img id="restart-btn" src="assets/MakeIceCube/ButtonRestart.svg" alt="Restart" draggable="false">
 </div>
@@ -251,6 +255,7 @@
   const timer    = document.getElementById('timer');
   const icecubes = document.getElementById('icecubes');
   const statusText = document.getElementById('status-text');
+  const statusTime = document.getElementById('status-time');
   const completeBanner = document.getElementById('complete-banner');
   const restartBtn = document.getElementById('restart-btn');
   const scene    = document.getElementById('scene');
@@ -398,6 +403,11 @@
       return;
     }
     if (state === 'TIMER_CENTERED') {
+      var v = Math.round(timerValue);
+      var hi = Math.floor(v / 100);
+      var lo = v % 100;
+      statusTime.textContent =
+        String(hi).padStart(2, '0') + ':' + String(lo).padStart(2, '0');
       timer.style.transition = 'opacity 0.4s';
       timer.style.opacity = '0';
       setTimeout(function () { timer.style.display = 'none'; }, 400);
@@ -547,6 +557,7 @@
     // reset status text
     statusText.classList.remove('visible');
     statusText.style.display = '';
+    statusTime.textContent = '00:00';
 
     state = 'START';
   });
