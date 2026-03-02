@@ -65,9 +65,9 @@
       animation: shakeY 0.4s ease-in-out infinite;
     }
     #fridge.center {
-      left: calc(50% - 175px);
-      top: calc(50% - 260px);
-      width: 350px;
+      left: calc(50% - 225px);
+      top: calc(50% - 300px);
+      width: 450px;
       transform: scale(1);
     }
 
@@ -93,14 +93,14 @@
 
     /* ---------- Tray moved down (avoid fridge overlap) ---------- */
     #tray.moved-down {
-      top: calc(100% - 160px);
+      top: calc(100% - 260px);
     }
 
     /* ---------- Tray inside fridge ---------- */
     #tray.in-fridge {
-      width: 100px;
-      left: calc(50% - 50px);
-      top: calc(50% - 20px);
+      width: 120px;
+      left: calc(50% - 80px);
+      top: calc(50% - 60px);
       transform: scale(0.6);
       z-index: 5;
     }
@@ -254,7 +254,7 @@
       kettle.classList.add('pouring');
       // position kettle above tray visually
       const trayRect = tray.getBoundingClientRect();
-      kettle.style.left = (trayRect.left + trayRect.width / 2 - 110 + 100) + 'px';
+      kettle.style.left = (trayRect.left + trayRect.width / 2 - 110 + 150) + 'px';
       kettle.style.top  = (trayRect.top - 100) + 'px';
 
       setTimeout(function () {
