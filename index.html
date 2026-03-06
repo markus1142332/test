@@ -497,13 +497,6 @@
     fridge.style.transition = 'opacity 0.5s';
     fridge.style.opacity = '0';
     setTimeout(function () { fridge.style.display = 'none'; }, 500);
-    if (Math.round(timerValue) >= 6000) {
-      icecubes.src = 'assets/MakeIceCube/IceCube.png';
-      playSuccessSound();
-    } else {
-      icecubes.src = 'assets/MakeIceCube/MiltIceCube.svg';
-      playFailSound();
-    }
     icecubes.classList.add('visible');
     completeBanner.classList.add('visible');
     restartBtn.classList.add('visible');
@@ -517,7 +510,6 @@
     // hide completion elements
     icecubes.classList.remove('visible');
     icecubes.style.display = 'none';
-    icecubes.src = 'assets/MakeIceCube/IceCube.png';
     completeBanner.classList.remove('visible');
     completeBanner.style.display = 'none';
     restartBtn.classList.remove('visible');
@@ -583,40 +575,6 @@
     // remove inline left/top so CSS takes over
     el.style.left = '';
     el.style.top  = '';
-  }
-
-  function playSuccessSound() {
-    var ctx = new (window.AudioContext || window.webkitAudioContext)();
-    var notes = [523.25, 659.25, 783.99]; // C5, E5, G5
-    notes.forEach(function (freq, i) {
-      var osc = ctx.createOscillator();
-      var gain = ctx.createGain();
-      osc.connect(gain);
-      gain.connect(ctx.destination);
-      osc.type = 'sine';
-      osc.frequency.value = freq;
-      var t = ctx.currentTime + i * 0.12;
-      gain.gain.setValueAtTime(0, t);
-      gain.gain.linearRampToValueAtTime(0.3, t + 0.02);
-      gain.gain.exponentialRampToValueAtTime(0.01, t + 0.4);
-      osc.start(t);
-      osc.stop(t + 0.4);
-    });
-  }
-
-  function playFailSound() {
-    var ctx = new (window.AudioContext || window.webkitAudioContext)();
-    var osc = ctx.createOscillator();
-    var gain = ctx.createGain();
-    osc.connect(gain);
-    gain.connect(ctx.destination);
-    osc.type = 'square';
-    osc.frequency.setValueAtTime(350, ctx.currentTime);
-    osc.frequency.linearRampToValueAtTime(120, ctx.currentTime + 0.5);
-    gain.gain.setValueAtTime(0.15, ctx.currentTime);
-    gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.5);
-    osc.start(ctx.currentTime);
-    osc.stop(ctx.currentTime + 0.5);
   }
 
   /* -------- initial draggable flags -------- */
