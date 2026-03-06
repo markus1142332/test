@@ -127,6 +127,50 @@
       animation: icecubeIn 0.5s ease;
     }
 
+    /* ---------- Melted ice cube (fail) ---------- */
+    #milt-icecube {
+      width: 260px;
+      left: 50%;
+      top: 50%;
+      transform: translate(-50%, -50%);
+      display: none;
+      z-index: 10;
+    }
+    #milt-icecube.visible {
+      display: block;
+      animation: icecubeIn 0.5s ease;
+    }
+
+    /* ---------- Fail banner ---------- */
+    #fail-banner {
+      width: 340px;
+      left: 50%;
+      bottom: 120px;
+      top: auto;
+      transform: translateX(-50%);
+      display: none;
+      z-index: 20;
+    }
+    #fail-banner.visible {
+      display: block;
+      animation: popIn 0.6s ease;
+    }
+
+    /* ---------- Success banner ---------- */
+    #success-banner {
+      width: 340px;
+      left: 50%;
+      bottom: 120px;
+      top: auto;
+      transform: translateX(-50%);
+      display: none;
+      z-index: 20;
+    }
+    #success-banner.visible {
+      display: block;
+      animation: popIn 0.6s ease;
+    }
+
     /* ---------- Status text ---------- */
     #status-text {
       position: absolute;
@@ -241,9 +285,14 @@
     </defs>
   </svg>
   <img id="icecubes" src="assets/MakeIceCube/IceCube.png" alt="Ice Cubes" draggable="false">
+  <img id="milt-icecube" src="assets/MakeIceCube/MiltIceCube.png" alt="Melted Ice Cube" draggable="false" style="display:none;">
   <div id="status-text"><span id="status-time">00:00</span> Minutes later...</div>
   <img id="complete-banner" src="assets/MakeIceCube/IceCubeReadyText.svg" alt="Ice Cubes Ready" draggable="false">
+  <img id="fail-banner" src="assets/MakeIceCube/Failed.svg" alt="Failed" draggable="false" style="display:none;">
+  <img id="success-banner" src="assets/MakeIceCube/Success.png" alt="Success" draggable="false" style="display:none;">
   <img id="restart-btn" src="assets/MakeIceCube/ButtonRestart.svg" alt="Restart" draggable="false">
+  <audio id="fail-sound" src="assets/MakeIceCube/FailSound.mp3" preload="auto"></audio>
+  <audio id="success-sound" src="assets/MakeIceCube/SuccessSound.mp3" preload="auto"></audio>
 </div>
 
 <script>
@@ -256,8 +305,13 @@
   const icecubes = document.getElementById('icecubes');
   const statusText = document.getElementById('status-text');
   const statusTime = document.getElementById('status-time');
+  const miltIcecube = document.getElementById('milt-icecube');
   const completeBanner = document.getElementById('complete-banner');
+  const failBanner = document.getElementById('fail-banner');
+  const successBanner = document.getElementById('success-banner');
   const restartBtn = document.getElementById('restart-btn');
+  const failSound = document.getElementById('fail-sound');
+  const successSound = document.getElementById('success-sound');
   const scene    = document.getElementById('scene');
 
   /* -------- state machine -------- */
@@ -404,10 +458,10 @@
     }
     if (state === 'TIMER_CENTERED') {
       var v = Math.round(timerValue);
-      var hi = Math.floor(v / 100);
-      var lo = v % 100;
+      var mins = Math.floor(v / 60);
+      var secs = v % 60;
       statusTime.textContent =
-        String(hi).padStart(2, '0') + ':' + String(lo).padStart(2, '0');
+        String(mins).padStart(2, '0') + ':' + String(secs).padStart(2, '0');
       timer.style.transition = 'opacity 0.4s';
       timer.style.opacity = '0';
       setTimeout(function () { timer.style.display = 'none'; }, 400);
@@ -431,7 +485,7 @@
   var timerPrevAngle = null;
   var timerDragging = false;
   var TIMER_TRACK_R = 128;
-  var TIMER_PER_REV = 2000;
+  var TIMER_PER_REV = 1200;
 
   function pointerToTimerSvg(e) {
     var rect = timer.getBoundingClientRect();
@@ -443,10 +497,10 @@
 
   function updateTimerDisplay() {
     var v = Math.round(timerValue);
-    var hi = Math.floor(v / 100);
-    var lo = v % 100;
+    var mins = Math.floor(v / 60);
+    var secs = v % 60;
     timerDisplay.textContent =
-      String(hi).padStart(2, '0') + ':' + String(lo).padStart(2, '0');
+      String(mins).padStart(2, '0') + ':' + String(secs).padStart(2, '0');
   }
 
   timerKnob.addEventListener('pointerdown', function (e) {
@@ -467,7 +521,7 @@
       if (delta > Math.PI)  delta -= 2 * Math.PI;
       if (delta < -Math.PI) delta += 2 * Math.PI;
       timerValue += delta / (2 * Math.PI) * TIMER_PER_REV;
-      timerValue = Math.max(0, Math.min(9999, timerValue));
+      timerValue = Math.max(0, Math.min(5999, timerValue));
       updateTimerDisplay();
     }
     timerPrevAngle = angle;
@@ -497,8 +551,21 @@
     fridge.style.transition = 'opacity 0.5s';
     fridge.style.opacity = '0';
     setTimeout(function () { fridge.style.display = 'none'; }, 500);
-    icecubes.classList.add('visible');
-    completeBanner.classList.add('visible');
+
+    var v = Math.round(timerValue);
+    var mins = Math.floor(v / 60);
+
+    if (mins >= 60) {
+      // SUCCESS: 60:00 - 99:59
+      icecubes.classList.add('visible');
+      successBanner.classList.add('visible');
+      successSound.play().catch(function(){});
+    } else {
+      // FAIL: 00:00 - 59:59
+      miltIcecube.classList.add('visible');
+      failBanner.classList.add('visible');
+      failSound.play().catch(function(){});
+    }
     restartBtn.classList.add('visible');
     state = 'COMPLETE';
   });
@@ -510,9 +577,19 @@
     // hide completion elements
     icecubes.classList.remove('visible');
     icecubes.style.display = 'none';
+    miltIcecube.classList.remove('visible');
+    miltIcecube.style.display = 'none';
     completeBanner.classList.remove('visible');
     completeBanner.style.display = 'none';
+    failBanner.classList.remove('visible');
+    failBanner.style.display = 'none';
+    successBanner.classList.remove('visible');
+    successBanner.style.display = 'none';
     restartBtn.classList.remove('visible');
+    failSound.pause();
+    failSound.currentTime = 0;
+    successSound.pause();
+    successSound.currentTime = 0;
 
     // reset kettle
     kettle.style.display = '';
