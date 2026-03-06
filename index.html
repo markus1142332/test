@@ -195,8 +195,7 @@
     #complete-banner {
       width: 340px;
       left: 50%;
-      bottom: 120px;
-      top: auto;
+      top: calc(50% - 180px);
       transform: translateX(-50%);
       display: none;
       z-index: 20;
@@ -572,11 +571,17 @@
 
     if (mins >= 60) {
       // SUCCESS: 60:00 - 99:59
+      icecubes.style.display = '';
+      successBanner.style.display = '';
+      completeBanner.style.display = '';
       icecubes.classList.add('visible');
       successBanner.classList.add('visible');
+      completeBanner.classList.add('visible');
       successSound.play().catch(function(){});
     } else {
       // FAIL: 00:00 - 59:59
+      miltIcecube.style.display = '';
+      failBanner.style.display = '';
       miltIcecube.classList.add('visible');
       failBanner.classList.add('visible');
       failSound.play().catch(function(){});
