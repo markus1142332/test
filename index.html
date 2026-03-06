@@ -258,8 +258,8 @@
   <img id="tray"   src="assets/MakeIceCube/IceCubeTray_empty.png" alt="Ice Cube Tray" draggable="false">
   <img id="fridge" src="assets/MakeIceCube/Fridge_close.png" alt="Refrigerator" draggable="false">
   <svg id="timer" viewBox="0 0 300 300" xmlns="http://www.w3.org/2000/svg">
-    <g filter="url(#timerF0)"><circle cx="150" cy="150" r="150" fill="#8DB9FF"/></g>
-    <g filter="url(#timerF1)"><circle cx="150" cy="150" r="105" fill="#8DB9FF"/></g>
+    <g filter="url(#timerF0)"><circle id="timer-outer" cx="150" cy="150" r="150" fill="#FF3A3A"/></g>
+    <g filter="url(#timerF1)"><circle id="timer-inner" cx="150" cy="150" r="105" fill="#FF3A3A"/></g>
     <circle cx="150" cy="22" r="17" fill="white" fill-opacity="0.2"/>
     <circle id="timer-knob" cx="150" cy="22" r="17" fill="white" fill-opacity="0.35" style="cursor:grab"/>
     <text id="timer-display" x="150" y="162" text-anchor="middle" font-family="'Courier New',monospace" font-size="46" font-weight="bold" fill="black">00:00</text>
@@ -495,12 +495,27 @@
     };
   }
 
+  var timerOuter = document.getElementById('timer-outer');
+  var timerInner = document.getElementById('timer-inner');
+
+  function lerpColor(t) {
+    // #FF3A3A (255,58,58) → #8DB9FF (141,185,255)
+    var r = Math.round(255 + (141 - 255) * t);
+    var g = Math.round(58 + (185 - 58) * t);
+    var b = Math.round(58 + (255 - 58) * t);
+    return 'rgb(' + r + ',' + g + ',' + b + ')';
+  }
+
   function updateTimerDisplay() {
     var v = Math.round(timerValue);
     var mins = Math.floor(v / 60);
     var secs = v % 60;
     timerDisplay.textContent =
       String(mins).padStart(2, '0') + ':' + String(secs).padStart(2, '0');
+    var t = Math.min(v / 3600, 1);
+    var color = lerpColor(t);
+    timerOuter.setAttribute('fill', color);
+    timerInner.setAttribute('fill', color);
   }
 
   timerKnob.addEventListener('pointerdown', function (e) {
@@ -630,6 +645,8 @@
     timerDisplay.textContent = '00:00';
     timerValue = 0;
     timerPrevAngle = null;
+    timerOuter.setAttribute('fill', '#FF3A3A');
+    timerInner.setAttribute('fill', '#FF3A3A');
 
     // reset status text
     statusText.classList.remove('visible');
