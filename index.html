@@ -92,6 +92,11 @@
       opacity: 0.35;
       transform-origin: center center;
     }
+    #timer.highlighted {
+      width: 120px;
+      opacity: 1;
+      transform: scale(1);
+    }
     #timer.shaking {
       animation: shakeY 0.35s ease-in-out infinite;
     }
@@ -414,7 +419,7 @@
         tray.style.display = 'none';
         fridge.src = 'assets/MakeIceCube/Fridge_close.png';
         state = 'TRAY_IN_FRIDGE';
-        timer.classList.add('shaking');
+        timer.classList.add('highlighted', 'shaking');
       }, 700);
     } else {
       resetPosition(tray);
@@ -458,7 +463,7 @@
      ============================================================ */
   timer.addEventListener('click', function () {
     if (state === 'TRAY_IN_FRIDGE') {
-      timer.classList.remove('shaking');
+      timer.classList.remove('shaking', 'highlighted');
       timer.classList.add('center');
       state = 'TIMER_CENTERED';
       return;
@@ -652,7 +657,7 @@
     timer.style.display = '';
     timer.style.opacity = '';
     timer.style.transition = '';
-    timer.classList.remove('center', 'shaking');
+    timer.classList.remove('center', 'shaking', 'highlighted');
     timerKnob.setAttribute('cx', '150');
     timerKnob.setAttribute('cy', '22');
     timerDisplay.textContent = '00:00';
